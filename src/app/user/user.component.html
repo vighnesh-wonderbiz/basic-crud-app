@@ -1,0 +1,51 @@
+<table>
+  <tr>
+    <td>Name</td>
+    <td>
+      <input
+        type="text"
+        placeholder="Enter your name..."
+        [(ngModel)]="user.name"
+      />
+    </td>
+  </tr>
+  <tr>
+    <td>Email</td>
+    <td>
+      <input
+        type="email"
+        [(ngModel)]="user.email"
+        placeholder="Enter your email..."
+      />
+    </td>
+  </tr>
+  <tr>
+    <td>Status</td>
+    <td style="display: flex">
+      <div>
+        <input type="checkbox" id="my-toggle" [(ngModel)]="user.isActive" />
+        <label for="my-toggle">Is Active</label>
+      </div>
+      <s></s>
+    </td>
+  </tr>
+  <tr>
+    <td>Gender</td>
+    <td>
+      <select [(ngModel)]="user.genderId">
+        <ng-container *ngFor="let g of genders">
+          <option [value]="g.genderId">{{ g.genderName }}</option>
+        </ng-container>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td><button (click)="onSave()">Save</button></td>
+  </tr>
+</table>
+
+<!-- <app-list
+  [query]="query"
+  (populateUser)="getUserFromList($event)"
+  (populateQuery)="getQueryParams($event)"
+></app-list> -->

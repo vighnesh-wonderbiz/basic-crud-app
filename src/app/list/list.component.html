@@ -1,0 +1,68 @@
+<a routerLink="/add">Add</a>
+<table class="my-table">
+  <thead>
+    <tr>
+      <td colspan="7">
+        <div style="display: flex; justify-content: space-between">
+          <div>
+            <label>Filter: </label>
+            <select
+              [(ngModel)]="query.filter"
+              (change)="updateFilter(query.filter)"
+            >
+              <option value="">All</option>
+              <ng-container *ngFor="let g of genders">
+                <option [value]="g.genderName">
+                  {{ g.genderName }}
+                </option>
+              </ng-container>
+            </select>
+          </div>
+          <div>
+            <div style="display: flex">
+              <input type="text" [(ngModel)]="query.q" />
+              <button (click)="searchQuery()">search</button>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <th>Id</th>
+      <th>Name</th>
+      <th>Gender</th>
+      <th>Email</th>
+      <th>Status</th>
+      <th>Edit</th>
+      <th>Delete</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let u of allUsers">
+      <th>{{ u.userId }}</th>
+      <th>{{ u.name }}</th>
+      <th>{{ u.gender }}</th>
+      <th>{{ u.email }}</th>
+      <th>{{ u.isActive ? "Online" : "Ofline" }}</th>
+      <th><button (click)="onUpdate(u.userId)">Edit</button></th>
+      <th><button (click)="onDelete(u.userId)">Delete</button></th>
+    </tr>
+    <tr>
+      <td class="no-border" colspan="7">
+        <div
+          style="display: flex; justify-content: center; margin: 1rem"
+          class="no-border"
+        >
+          <div *ngIf="query.start > 1">
+            <button (click)="prevPage()" style="margin-right: 1rem">
+              Prev
+            </button>
+          </div>
+          <div *ngIf="query.count == query.limit">
+            <button (click)="nextPage()">Next</button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
