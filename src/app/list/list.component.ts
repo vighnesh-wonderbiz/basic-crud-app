@@ -18,12 +18,6 @@ export class ListComponent {
     private router: Router
   ) {}
 
-  @Input() allUsers!: User[];
-  @Input() query!: Query;
-
-  @Output() populateUser = new EventEmitter();
-  @Output() populateQuery = new EventEmitter();
-
   // user object
   user: User = {
     userId: 0,
@@ -35,6 +29,16 @@ export class ListComponent {
     createdDate: new Date(),
     createdBy: 1,
   };
+
+  query: Query = {
+    start: 1,
+    limit: 5,
+    q: '',
+    filter: '',
+    count: 5,
+  };
+
+  allUsers: User[] = [];
   genders: Gender[] = [];
 
   ngOnInit(): void {
@@ -61,7 +65,6 @@ export class ListComponent {
   nextPage(): void {
     if (this.query.count == this.query.limit) {
       this.query.start += 1;
-      this.populateQuery.emit(this.query);
       this.fetchAllUsers(
         this.query.start,
         this.query.limit,
@@ -73,7 +76,6 @@ export class ListComponent {
   prevPage(): void {
     if (this.query.start > 0) {
       this.query.start -= 1;
-      this.populateQuery.emit(this.query);
       this.fetchAllUsers(
         this.query.start,
         this.query.limit,
@@ -90,7 +92,6 @@ export class ListComponent {
       this.query.q,
       gender
     );
-    this.populateQuery.emit(this.query);
   }
   // search query
   searchQuery(): void {
@@ -106,7 +107,6 @@ export class ListComponent {
   // on click events
   onUpdate(id: number): void {
     this.router.navigate(['/add', id]);
-
   }
   onDelete(id: number): void {
     this.userService

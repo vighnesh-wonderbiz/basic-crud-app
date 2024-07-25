@@ -27,7 +27,6 @@ export class UserService {
 
   createUser(user: User): Observable<User> {
     const { name, email, isActive, genderId, createdBy } = user;
-
     return this.http.post<User>(`${this.baseURI}`, {
       name,
       email,

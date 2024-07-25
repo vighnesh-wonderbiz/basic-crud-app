@@ -19,6 +19,7 @@ export class UserComponent {
   ) {}
 
   genders: Gender[] = [];
+  genderObj: { [key: number]: string } = {};
 
   allUsers: User[] = [];
 
@@ -33,37 +34,49 @@ export class UserComponent {
     createdBy: 1,
   };
 
-  query: Query = {
-    start: 1,
-    limit: 5,
-    q: '',
-    filter: '',
-    count: 5,
-  };
-
-  // event from children
-  getUserFromList(user: User): void {
-    this.user = user;
-  }
-  getQueryParams(query: Query): void {
-    this.query = query;
-  }
-
   ngOnInit(): void {
-    this.route.params.subscribe((d) => {
-      this.user.userId = d['id'];
-      if (this.user.userId != null || this.user.userId != 0) {
-        this.userService.getUserById(this.user.userId).subscribe((data) => {
-          this.user = data;
-        });
-      }
-    });
     this.genderService.getGenders().subscribe((data) => {
       this.genders = data;
+      this.genders.forEach((g) => {
+        this.genderObj[g.genderId] = g.genderName;
+      });
+    });
+    this.route.params.subscribe((d) => {
+      var id = d['id'];
+      this.user.userId = id;
+      if (id != null || id != undefined) {
+        this.userService.getUserById(this.user.userId).subscribe((data) => {
+          this.user = data;
+          Object.keys(this.genderObj).forEach((g) => {
+            if (this.genderObj[+g] == this.user.gender) {
+              this.user.genderId = +g;
+            }
+          });
+        });
+      }
     });
   }
   // click event
   onSave(): void {
+    const { name, email, isActive, genderId } = this.user;
+    const err = [
+      { value: name, name: 'Name' },
+      { value: email, name: 'Email' },
+      { value: isActive, name: 'Active status' },
+      { value: genderId, name: 'Gender' },
+    ];
+
+    const errArr: string[] = [];
+    err.forEach((e) => {
+      if (!e.value || e.value == 0) {
+        errArr.push(e.name);
+      }
+    });
+
+    if (errArr.length != 0) {
+      return alert(`Please ${errArr.join(', ')} values`);
+    }
+
     if (this.user.userId != 0) {
       this.updateUser(this.user.userId);
     } else {
@@ -72,12 +85,6 @@ export class UserComponent {
     this.setDefaultUser();
   }
 
-  // helper functions
-  fetchAllUsers(start: number, limit: number, q: string, filter: string): void {
-    this.userService.getUser(start, limit, q, filter).subscribe((data) => {
-      this.allUsers = data;
-    });
-  }
   setDefaultUser(): void {
     this.user.userId = 0;
     this.user.name = '';
@@ -96,19 +103,32 @@ export class UserComponent {
       .subscribe({
         next: (response) => {},
         error: (e) => {
-          alert(JSON.stringify(e));
+          // {"headers":{"normalizedNames":{},"lazyUpdate":null},"status":400,"statusText":"Bad Request","url":"http://localhost:5029/api/user/undefined","ok":false,"name":"HttpErrorResponse","message":"Http failure response for http://localhost:5029/api/user/undefined: 400 Bad Request","error":{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"id":["The value 'undefined' is not valid."]},"traceId":"00-5350768a6e789c32d61d14f40583ec09-ad45a0d9b4e22335-00"}}
+          alert(e.status == 400 ? 'Email already exists' : e.message);
         },
         complete: () => {
-          this.fetchAllUsers(
-            this.query.start,
-            this.query.limit,
-            this.query.q,
-            this.query.filter
-          );
+          alert('User created!');
         },
       });
   }
   updateUser(id: number): void {
+    const err = [
+      { value: this.user.name, name: 'Name' },
+      { value: this.user.email, name: 'Email' },
+      { value: this.user.isActive, name: 'Active status' },
+      { value: this.user.genderId, name: 'Gender' },
+    ];
+
+    const errArr: string[] = [];
+    err.forEach((e) => {
+      if (!e.value || e.value == 0) {
+        errArr.push(e.name);
+      }
+    });
+
+    if (errArr.length != 0) {
+      return alert(`Please ${errArr.join(', ')} values`);
+    }
     this.userService
       .updateUser(id, this.user)
       .pipe()
@@ -117,12 +137,7 @@ export class UserComponent {
           alert(JSON.stringify(e));
         },
         complete: () => {
-          this.fetchAllUsers(
-            this.query.start,
-            this.query.limit,
-            this.query.q,
-            this.query.filter
-          );
+          alert('User updated!');
         },
       });
   }
