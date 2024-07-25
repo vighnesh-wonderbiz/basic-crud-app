@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, CSP_NONCE } from '@angular/core';
 import User from '../models/user.model';
 import { UserService } from '../services/user.service';
 import { GenderService } from '../services/gender.service';
 import Gender from '../models/gender.model';
 import Query from '../models/query.model';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-user',
@@ -15,11 +15,12 @@ export class UserComponent {
   constructor(
     private userService: UserService,
     private genderService: GenderService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   genders: Gender[] = [];
-  genderObj: { [key: number]: string } = {};
+  genderObj: { [key: string]: number } = {};
 
   allUsers: User[] = [];
 
@@ -33,26 +34,25 @@ export class UserComponent {
     createdDate: new Date(),
     createdBy: 1,
   };
+  isUpdate: boolean = false;
 
   ngOnInit(): void {
     this.genderService.getGenders().subscribe((data) => {
       this.genders = data;
       this.genders.forEach((g) => {
-        this.genderObj[g.genderId] = g.genderName;
+        this.genderObj[g.genderName] = g.genderId;
       });
     });
     this.route.params.subscribe((d) => {
-      var id = d['id'];
-      this.user.userId = id;
-      if (id != null || id != undefined) {
-        this.userService.getUserById(this.user.userId).subscribe((data) => {
-          this.user = data;
-          Object.keys(this.genderObj).forEach((g) => {
-            if (this.genderObj[+g] == this.user.gender) {
-              this.user.genderId = +g;
-            }
+      const id = d['id'];
+      if (id) {
+        this.user.userId = id;
+        if (id != null || id != undefined) {
+          this.userService.getUserById(this.user.userId).subscribe((data) => {
+            this.user = data;
+            this.user.genderId = this.genderObj[this.user.gender];
           });
-        });
+        }
       }
     });
   }
@@ -62,7 +62,6 @@ export class UserComponent {
     const err = [
       { value: name, name: 'Name' },
       { value: email, name: 'Email' },
-      { value: isActive, name: 'Active status' },
       { value: genderId, name: 'Gender' },
     ];
 
@@ -76,8 +75,8 @@ export class UserComponent {
     if (errArr.length != 0) {
       return alert(`Please ${errArr.join(', ')} values`);
     }
-
-    if (this.user.userId != 0) {
+    console.log(this.isUpdate);
+    if (this.isUpdate) {
       this.updateUser(this.user.userId);
     } else {
       this.saveUser();
@@ -103,41 +102,25 @@ export class UserComponent {
       .subscribe({
         next: (response) => {},
         error: (e) => {
-          // {"headers":{"normalizedNames":{},"lazyUpdate":null},"status":400,"statusText":"Bad Request","url":"http://localhost:5029/api/user/undefined","ok":false,"name":"HttpErrorResponse","message":"Http failure response for http://localhost:5029/api/user/undefined: 400 Bad Request","error":{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"id":["The value 'undefined' is not valid."]},"traceId":"00-5350768a6e789c32d61d14f40583ec09-ad45a0d9b4e22335-00"}}
           alert(e.status == 400 ? 'Email already exists' : e.message);
         },
         complete: () => {
           alert('User created!');
+          this.router.navigate(['/']);
         },
       });
   }
   updateUser(id: number): void {
-    const err = [
-      { value: this.user.name, name: 'Name' },
-      { value: this.user.email, name: 'Email' },
-      { value: this.user.isActive, name: 'Active status' },
-      { value: this.user.genderId, name: 'Gender' },
-    ];
-
-    const errArr: string[] = [];
-    err.forEach((e) => {
-      if (!e.value || e.value == 0) {
-        errArr.push(e.name);
-      }
-    });
-
-    if (errArr.length != 0) {
-      return alert(`Please ${errArr.join(', ')} values`);
-    }
     this.userService
       .updateUser(id, this.user)
       .pipe()
       .subscribe({
         error: (e) => {
-          alert(JSON.stringify(e));
+          alert(e.status == 400 ? 'Email already exists' : e.message);
         },
         complete: () => {
           alert('User updated!');
+          this.router.navigate(['/']);
         },
       });
   }
