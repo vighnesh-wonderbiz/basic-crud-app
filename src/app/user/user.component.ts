@@ -18,12 +18,7 @@ export class UserComponent {
     private route: ActivatedRoute,
     private router: Router
   ) {}
-
   genders: Gender[] = [];
-  genderObj: { [key: string]: number } = {};
-
-  allUsers: User[] = [];
-
   user: User = {
     userId: 0,
     name: '',
@@ -34,14 +29,12 @@ export class UserComponent {
     createdDate: new Date(),
     createdBy: 1,
   };
+
   isUpdate: boolean = false;
 
   ngOnInit(): void {
     this.genderService.getGenders().subscribe((data) => {
       this.genders = data;
-      this.genders.forEach((g) => {
-        this.genderObj[g.genderName] = g.genderId;
-      });
     });
     this.route.params.subscribe((d) => {
       const id = d['id'];
@@ -50,7 +43,6 @@ export class UserComponent {
         if (id != null || id != undefined) {
           this.userService.getUserById(this.user.userId).subscribe((data) => {
             this.user = data;
-            this.user.genderId = this.genderObj[this.user.gender];
           });
         }
       }
@@ -58,24 +50,7 @@ export class UserComponent {
   }
   // click event
   onSave(): void {
-    const { name, email, isActive, genderId } = this.user;
-    const err = [
-      { value: name, name: 'Name' },
-      { value: email, name: 'Email' },
-      { value: genderId, name: 'Gender' },
-    ];
-
-    const errArr: string[] = [];
-    err.forEach((e) => {
-      if (!e.value || e.value == 0) {
-        errArr.push(e.name);
-      }
-    });
-
-    if (errArr.length != 0) {
-      return alert(`Please ${errArr.join(', ')} values`);
-    }
-    console.log(this.isUpdate);
+    this.isValid();
     if (this.isUpdate) {
       this.updateUser(this.user.userId);
     } else {
@@ -124,4 +99,19 @@ export class UserComponent {
         },
       });
   }
+
+  isValid = (): string[] => {
+    const errArr: string[] = [];
+    const err = [
+      { value: this.user.name, name: 'Name' },
+      { value: this.user.email, name: 'Email' },
+      { value: this.user.genderId, name: 'Gender' },
+    ];
+    err.forEach((e) => {
+      if (!e.value || e.value == 0) {
+        errArr.push(e.name);
+      }
+    });
+    return errArr;
+  };
 }

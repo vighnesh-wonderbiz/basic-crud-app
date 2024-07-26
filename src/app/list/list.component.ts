@@ -42,65 +42,36 @@ export class ListComponent {
   genders: Gender[] = [];
 
   ngOnInit(): void {
-    this.fetchAllUsers(
-      this.query.start,
-      this.query.limit,
-      this.query.q,
-      this.query.filter
-    );
+    this.fetchAllUsers(this.query);
     this.genderService.getGenders().subscribe((data) => {
       this.genders = data;
     });
   }
-
+  changePage(e: any) {
+    this.query.start = e;
+    this.fetchAllUsers(this.query);
+  }
   // helper to fetch users
-  fetchAllUsers(start: number, limit: number, q: string, filter: string): void {
-    this.userService.getUser(start, limit, q, filter).subscribe((data) => {
-      this.query.count = data.length;
-      this.allUsers = data;
+  fetchAllUsers(query: Query): void {
+    this.userService.getUser(query).subscribe((data) => {
+      this.query.count = data.count;
+      this.allUsers = data.users;
     });
   }
 
   // pagination
-  nextPage(): void {
-    if (this.query.count == this.query.limit) {
-      this.query.start += 1;
-      this.fetchAllUsers(
-        this.query.start,
-        this.query.limit,
-        this.query.q,
-        this.query.filter
-      );
-    }
+  onPageChange(e: number) {
+    this.query.start = e;
+    this.fetchAllUsers(this.query);
   }
-  prevPage(): void {
-    if (this.query.start > 0) {
-      this.query.start -= 1;
-      this.fetchAllUsers(
-        this.query.start,
-        this.query.limit,
-        this.query.q,
-        this.query.filter
-      );
-    }
-  }
+
   // gender filter
   updateFilter(gender: string): void {
-    this.fetchAllUsers(
-      this.query.start,
-      this.query.limit,
-      this.query.q,
-      gender
-    );
+    this.fetchAllUsers(this.query);
   }
   // search query
   searchQuery(): void {
-    this.fetchAllUsers(
-      this.query.start,
-      this.query.limit,
-      this.query.q,
-      this.query.filter
-    );
+    this.fetchAllUsers(this.query);
     this.query.q = '';
   }
 
@@ -116,12 +87,7 @@ export class ListComponent {
         error: (err) => {},
         complete: () => {
           alert('User deleted');
-          this.fetchAllUsers(
-            this.query.start,
-            this.query.limit,
-            this.query.q,
-            this.query.filter
-          );
+          this.fetchAllUsers(this.query);
         },
       });
   }

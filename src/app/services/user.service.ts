@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import User from '../models/user.model';
+import Query from '../models/query.model';
 
 @Injectable({
   providedIn: 'root',
@@ -11,13 +12,15 @@ export class UserService {
   constructor(private http: HttpClient) {}
 
   getUser(
-    start: number,
-    limit: number,
-    q: string,
-    filter: string
-  ): Observable<User[]> {
-    return this.http.get<User[]>(
-      `${this.baseURI}?start=${start}&limit=${limit}&q=${q}&filter=${filter}`
+    query: Query
+  ): Observable<{ count: number; page: number; limit: number; users: User[] }> {
+    return this.http.get<{
+      count: number;
+      page: number;
+      limit: number;
+      users: User[];
+    }>(
+      `${this.baseURI}?start=${query.start}&limit=${query.limit}&q=${query.q}&filter=${query.filter}`
     );
   }
 
